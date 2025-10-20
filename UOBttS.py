@@ -13,7 +13,7 @@ st.set_page_config(
 st.title("⚽ ANALIZA MECZU OVER/UNDER 2.5 & BTTS")
 st.markdown("---")
 
-# Funkcje z Twojego kodu (NIE RUSZAJ TEGO!)
+# Funkcje z Twojego kodu
 def oblicz_momentum(wyniki):
     if not wyniki:
         return 0
@@ -167,16 +167,19 @@ def main():
             time.sleep(2)
             
             # Konwersja danych
-            wyniki_gosp = wyniki_gosp.split()
-            wyniki_gosc = wyniki_gosc.split()
+            wyniki_gosp_list = wyniki_gosp.split()
+            wyniki_gosc_list = wyniki_gosc.split()
             
-            # Obliczenia (uproszczone dla demonstracji)
-            momentum_gosp = oblicz_momentum(wyniki_gosp)
-            momentum_gosc = oblicz_momentum(wyniki_gosc)
-            odchylenie_gosp = oblicz_odchylenie_standardowe(wyniki_gosp)
-            odchylenie_gosc = oblicz_odchylenie_standardowe(wyniki_gosc)
+            # Obliczenia
+            momentum_gosp = oblicz_momentum(wyniki_gosp_list)
+            momentum_gosc = oblicz_momentum(wyniki_gosc_list)
+            odchylenie_gosp = oblicz_odchylenie_standardowe(wyniki_gosp_list)
+            odchylenie_gosc = oblicz_odchylenie_standardowe(wyniki_gosc_list)
             
-            # Symulacja wyników (TUTAJ WKLEJ SWOJĄ PEŁNĄ LOGIKĘ Z CARNETS)
+            # Analiza xG
+            korekta_over_xg, korekta_btts_xg, srednie_xg_mecz, btts_potencjal = analiza_xg(xg_gosp, xg_gosc)
+            
+            # Symulacja wyników (możesz zastąpić pełną logiką z Carnets)
             over_mecz = 25.5
             btts_mecz = 42.0
             over_value = -53.6
@@ -224,8 +227,8 @@ def main():
                     st.metric("Momentum Gości", f"{momentum_gosc:.2f}")
                     st.metric("Odchylenie Gości", f"{odchylenie_gosc:.2f}")
                 with col3:
-                    st.metric("Suma xG", f"{xg_gosp + xg_gosc:.2f}")
-                    st.metric("Potencjał BTTS", f"{(xg_gosp + xg_gosc)/2:.2f}")
+                    st.metric("Suma xG", f"{srednie_xg_mecz:.2f}")
+                    st.metric("Potencjał BTTS", f"{btts_potencjal:.2f}")
             
             # Value Bets
             st.subheader("💎 QUALITY VALUE BETS")
@@ -235,6 +238,25 @@ def main():
                 st.info("*Strategia:* Stawiaj 1-3% bankrollu na każdy z tych zakładów")
             else:
                 st.warning("⚠️ Brak quality value bets w tym meczu")
+                
+            # Dodatkowe informacje
+            with st.expander("ℹ️ DODATKOWE INFORMACJE"):
+                st.write("*Interpretacja xG:*")
+                if srednie_xg_mecz > 2.8:
+                    st.write("📈 WYSOKIE xG - Wsparcie dla OVER 2.5")
+                elif srednie_xg_mecz < 2.2:
+                    st.write("📉 NISKIE xG - Wsparcie dla UNDER 2.5")
+                else:
+                    st.write("➖ NEUTRALNE xG - Brak wyraźnego wsparcia")
+                    
+                st.write("*Stabilność drużyn:*")
+                if odchylenie_gosp < 1.0 and odchylenie_gosc < 1.0:
+                    st.write("✅ Oba zespoły mają stabilne wyniki")
+                elif odchylenie_gosp > 1.8 or odchylenie_gosc > 1.8:
+                    st.write("⚠️ Przynajmniej jeden zespół ma niestabilne wyniki")
+                else:
+                    st.write("➖ Standardowy poziom zmienności")
 
+# TO JEST BARDZO WAŻNE - MUSI BYĆ NA SAMYM KOŃCU
 if _name_ == "_main_":
     main()
